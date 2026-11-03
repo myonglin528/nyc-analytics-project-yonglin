@@ -26,3 +26,41 @@ sources:
             description: Type of complaint
           - name: descriptor
             description: Further description of the complaint
+
+      - name: source_nyc_dob_job_apps
+        description: |
+          NYC DOB NOW Build Job Application Filings.
+          One row per job filing record.
+        columns:
+          - name: job_filing_number
+            description: Unique job filing number
+            data_tests:
+              - not_null
+          - name: filing_date
+            description: Date the job filing was submitted
+          - name: filing_status
+            description: Current status of the job filing
+          - name: job_type
+            description: Type of job
+          - name: house_no
+            description: House number of the job location
+          - name: street_name
+            description: Street name of the job location
+          - name: borough
+            description: Borough of the job location
+          - name: postcode
+            description: ZIP code of the job location
+          - name: community_board
+            description: Community board of the job location
+          - name: council_district
+            description: Council district of the job location
+          - name: block
+            description: Tax block number
+          - name: lot
+            description: Tax lot number
+          - name: bin
+            description: Building Identification Number
+          - name: latitude
+            description: Latitude coordinate
+          - name: longitude
+            description: Longitude coordinate
