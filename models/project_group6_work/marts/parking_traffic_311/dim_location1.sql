@@ -1,4 +1,3 @@
-
 -- CIS 9440 Group 6 - Milestone 4
 -- Location dimension for NYPD parking/traffic-related 311 requests
 -- Grain: one row per distinct combination of location attributes
