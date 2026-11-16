@@ -1,19 +1,77 @@
--- CIS 9440 Group 6 - Milestone 4
--- Time dimension shared by 311 requests and parking violations
--- Grain: one row per hour of the day
+WITH stg_open_camera AS (
 
-WITH all_hours AS (
+    SELECT *
+    FROM {{ ref('stg_open_camera_violations') }}
+
+),
+
+stg_311_requests AS (
+
+    SELECT *
+    FROM {{ ref('stg_311_requests') }}
+
+),
+
+-- Collect hours from both staging tables
+all_times AS (
+
+    -- Hours from 311 service requests
+    SELECT
+        EXTRACT(HOUR FROM created_date) AS hour
+    FROM stg_311_requests
+    WHERE created_date IS NOT NULL
+
+    UNION DISTINCT
+
+    -- Hours from parking violations
+    SELECT
+        CASE
+            WHEN REGEXP_CONTAINS(
+                TRIM(violation_time),
+                r'^(0[1-9]|1[0-2])[0-5][0-9][AP]$'
+            )
+            THEN MOD(
+                SAFE_CAST(
+                    SUBSTR(TRIM(violation_time), 1, 2)
+                    AS INT64
+                ),
+                12
+            ) + IF(
+                RIGHT(TRIM(violation_time), 1) = 'P',
+                12,
+                0
+            )
+            ELSE NULL
+        END AS hour
+    FROM stg_open_camera
+    WHERE violation_time IS NOT NULL
+
+),
+
+all_hours AS (
 
     SELECT hour
     FROM UNNEST(GENERATE_ARRAY(0, 23)) AS hour
 
 ),
 
+distinct_hours AS (
+
+    SELECT hour
+    FROM all_times
+    WHERE hour IS NOT NULL
+
+    UNION DISTINCT
+
+    SELECT hour
+    FROM all_hours
+
+),
+
 time_dimension AS (
 
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['hour']) }}
-            AS time_key,
+        {{ dbt_utils.generate_surrogate_key(['hour']) }} AS time_key,
 
         hour,
 
@@ -29,18 +87,18 @@ time_dimension AS (
             ELSE 'Night'
         END AS time_of_day
 
-    FROM all_hours
+    FROM distinct_hours
 
 ),
 
--- Placeholder row for missing time values
+-- Unknown time placeholder
 null_placeholder AS (
 
     SELECT
         '-1' AS time_key,
         CAST(NULL AS INT64) AS hour,
-        CAST(NULL AS STRING) AS am_pm,
-        CAST(NULL AS STRING) AS time_of_day
+        'Unknown' AS am_pm,
+        'Unknown' AS time_of_day
 
 )
 
