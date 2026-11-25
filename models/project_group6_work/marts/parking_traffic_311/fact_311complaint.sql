@@ -1,8 +1,3 @@
-
--- Group 6 - Corrected Fact 311 Complaint
--- Grain: one row per unique 311 service request
--- Dimension keys come from upstream dimension tables
-
 WITH stg AS (
 
     SELECT *
